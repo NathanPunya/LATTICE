@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LATTICE · Microstructure Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <div class="mark">▣</div>
+      <div>
+        <div class="name">LATTICE</div>
+        <div class="tag">limit-order-book laboratory</div>
+      </div>
+    </div>
+    <div class="status" id="status">idle</div>
+    <div class="clock" id="clock">00.00s</div>
+  </header>
+
+  <main class="grid">
+    <aside class="panel controls">
+      <h2>Session</h2>
+      <label>Strategy
+        <select id="strategy">
+          <option value="avellaneda_stoikov">Avellaneda–Stoikov</option>
+          <option value="glosten_milgrom">Glosten–Milgrom</option>
+          <option value="inventory_skew">Inventory skew</option>
+          <option value="naive">Naive symmetric</option>
+        </select>
+      </label>
+      <div class="row2">
+        <label>Seed <input id="seed" type="number" value="7" /></label>
+        <label>Horizon (s) <input id="horizon" type="number" value="40" min="8" max="120" /></label>
+      </div>
+      <div class="row2">
+        <label>Latency (ms) <input id="latency" type="number" value="8" min="0" max="80" /></label>
+        <label>Informed λ <input id="informed" type="number" value="2.5" step="0.1" /></label>
+      </div>
+      <div class="row2">
+        <label>Noise λ <input id="noise" type="number" value="8" step="0.5" /></label>
+        <label>γ (risk) <input id="gamma" type="number" value="0.05" step="0.01" /></label>
+      </div>
+      <label class="check"><input id="options" type="checkbox" /> Short-option overlay</label>
+      <label>Hedge mode
+        <select id="hedge">
+          <option value="mm">Work as maker</option>
+          <option value="taker">Take to target</option>
+          <option value="none">Do not hedge</option>
+        </select>
+      </label>
+      <div class="btns">
+        <button id="run" class="primary" type="button">Run simulation</button>
+        <button id="compare" type="button">Monte Carlo</button>
+      </div>
+      <p class="hint">Quotes rest in a real FIFO book. Informed flow knows the latent value. P&amp;L is decomposed, not decorated.</p>
+    </aside>
+
+    <section class="panel chart-wrap">
+      <div class="panel-h">
+        <h2>Price · fair value · quotes</h2>
+        <div class="legend">
+          <span class="lg fair">fair <b id="px-fair">—</b></span>
+          <span class="lg mid">mid <b id="px-mid">—</b></span>
+          <span class="lg bid">bid <b id="px-bid">—</b></span>
+          <span class="lg ask">ask <b id="px-ask">—</b></span>
+        </div>
+      </div>
+      <canvas id="price"></canvas>
+      <div class="transport">
+        <button id="playpause" type="button">Play</button>
+        <input id="scrub" type="range" min="0" max="0" value="0" />
+      </div>
+    </section>
+
+    <section class="panel metrics" id="metrics">
+      <div class="panel-h">
+        <h2>Attribution</h2>
+        <span class="muted" id="attr-asof">as of 0s</span>
+      </div>
+      <div class="kpi" id="kpis"></div>
+      <canvas id="attr" height="120"></canvas>
+      <h2 class="mt">Markout</h2>
+      <canvas id="markout" height="130"></canvas>
+    </section>
+
+    <section class="panel book">
+      <h2>Order book</h2>
+      <div class="ladder" id="ladder"></div>
+    </section>
+
+    <section class="panel inv">
+      <div class="panel-h">
+        <h2>Inventory</h2>
+        <span class="muted" id="inv-readout">0</span>
+      </div>
+      <canvas id="inv"></canvas>
+    </section>
+
+    <section class="panel equity">
+      <div class="panel-h">
+        <h2>Equity</h2>
+        <span class="muted" id="eq-readout">0.00</span>
+      </div>
+      <canvas id="equity"></canvas>
+    </section>
+
+    <section class="panel compare" id="compare-panel">
+      <h2>Strategy comparison</h2>
+      <div id="compare-table" class="table">Run Monte Carlo to identify edge vs. a control.</div>
+    </section>
+
+    <section class="panel fills">
+      <h2>MM fills</h2>
+      <div id="fills" class="fill-list"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Prices in ticks. Matching is price-time. Nothing fills except through the engine.</span>
+    <span class="mono">lattice run · lattice compare · lattice serve</span>
+  </footer>
+  <script src="/static/app.js"></script>
+</body>
+</html>
