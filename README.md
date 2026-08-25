@@ -9,8 +9,8 @@ Lattice is a matching engine plus a synthetic market (latent value, noise and in
 ```
 lattice/
   book.py         FIFO matching engine, integer ticks, queue tracking
-  strategies.py   Naive · inventory skew · Avellaneda–Stoikov · Glosten–Milgrom
-  options.py      Black–Scholes, Greeks, implied vol, short-option contract
+  strategies.py   Naive · inventory skew · Avellaneda-Stoikov · Glosten-Milgrom
+  options.py      Black-Scholes, Greeks, implied vol, short-option contract
   sim.py          Event-driven world: latent value, noise, informed flow, latency
   analytics.py    Spread / inventory / markout / fee attribution, session Sharpe
   server.py       Research terminal API
@@ -25,7 +25,7 @@ Prices are integer ticks in the core; floats exist only at the I/O boundary. Res
 
 ## Market
 
-Latent fair value is either Brownian motion in trading time or a two-state Glosten–Milgrom $V \in \{V_L, V_H\}$.
+Latent fair value is either Brownian motion in trading time or a two-state Glosten-Milgrom $V \in \{V_L, V_H\}$.
 
 - Noise traders arrive as a Poisson process and hit a random side.
 - Informed traders observe $V$ and trade only when they have edge.
@@ -34,14 +34,14 @@ Latent fair value is either Brownian motion in trading time or a two-state Glost
 
 ## Strategies
 
-| Name | CLI flag | Behavior |
-|---|---|---|
-| Naive | `naive` | Symmetric quotes around the mid |
-| Inventory skew | `inventory_skew` | Mid quotes pulled against inventory |
-| Avellaneda–Stoikov | `avellaneda_stoikov` | Reservation price and optimal spread (2008) |
-| Glosten–Milgrom | `glosten_milgrom` | Quotes fair conditional on being hit (1985) |
+| Name               | CLI flag             | Behavior                                    |
+| ------------------ | -------------------- | ------------------------------------------- |
+| Naive              | `naive`              | Symmetric quotes around the mid             |
+| Inventory skew     | `inventory_skew`     | Mid quotes pulled against inventory         |
+| Avellaneda-Stoikov | `avellaneda_stoikov` | Reservation price and optimal spread (2008) |
+| Glosten-Milgrom    | `glosten_milgrom`    | Quotes fair conditional on being hit (1985) |
 
-**Avellaneda–Stoikov.** Reservation price and optimal spread, with fill intensity $\lambda(\delta) = A e^{-k\delta}$:
+**Avellaneda-Stoikov.** Reservation price and optimal spread, with fill intensity $\lambda(\delta) = A e^{-k\delta}$:
 
 $$
 r(s,q,t) = s - q\gamma\sigma^2(T-t)
@@ -53,7 +53,7 @@ $$
 
 Quotes sit around $r$, not $s$. The closed form assumes a single liquidity provider and a Brownian mid; the simulator does not.
 
-**Glosten–Milgrom.** A fraction $\mu$ of flow is informed. After each trade the MM updates $p = \mathbb{P}(V = V_H \mid \text{history})$. The ask is $\mathbb{E}[V \mid \text{buy}]$, the bid is $\mathbb{E}[V \mid \text{sell}]$. The two-state value process matches this model; Brownian value is a misspecification.
+**Glosten-Milgrom.** A fraction $\mu$ of flow is informed. After each trade the MM updates $p = \mathbb{P}(V = V_H \mid \text{history})$. The ask is $\mathbb{E}[V \mid \text{buy}]$, the bid is $\mathbb{E}[V \mid \text{sell}]$. The two-state value process matches this model; Brownian value is a misspecification.
 
 **Options overlay.** A short call has position delta $-\Phi(d_1)N$. Target cash inventory is $+\Phi(d_1)N$. Hedge modes: `none`, `frictionless` (pay half-spread), `taker` (hit the book on a timer), or `mm` (skew maker quotes so hedging earns the spread).
 
@@ -61,13 +61,13 @@ Quotes sit around $r$, not $s$. The closed form assumes a single liquidity provi
 
 Every fill is split into:
 
-| Piece | What it is |
-|---|---|
-| Spread | Half-spread captured vs. the contemporaneous mid |
-| Inventory | Residual mark-to-market to the terminal mid |
-| Markout | Mid move 0.5s / 1s / 2s / 5s / 10s after the fill, split informed vs. noise |
-| Fees | Taker fee vs. maker rebate |
-| Option | Premium received minus live mark (when the overlay is on) |
+| Piece     | What it is                                                                  |
+| --------- | --------------------------------------------------------------------------- |
+| Spread    | Half-spread captured vs. the contemporaneous mid                            |
+| Inventory | Residual mark-to-market to the terminal mid                                 |
+| Markout   | Mid move 0.5s / 1s / 2s / 5s / 10s after the fill, split informed vs. noise |
+| Fees      | Taker fee vs. maker rebate                                                  |
+| Option    | Premium received minus live mark (when the overlay is on)                   |
 
 ## Install
 
@@ -90,14 +90,14 @@ lattice serve          # http://127.0.0.1:8000
 pytest
 ```
 
-| Command | What it does |
-|---|---|
-| `run` | Single path. `--strategy`, `--seed`, `--horizon`, `--latency`, `--options`, `--hedge`, `--out` |
-| `compare` | Monte Carlo across the four quoting policies |
-| `options` | Same short option under `none` / `taker` / `mm` hedge modes |
-| `serve` | Research terminal: book ladder, fair value vs. mid vs. quotes, inventory and equity paths, markouts, Monte Carlo |
+| Command   | What it does                                                                                                     |
+| --------- | ---------------------------------------------------------------------------------------------------------------- |
+| `run`     | Single path. `--strategy`, `--seed`, `--horizon`, `--latency`, `--options`, `--hedge`, `--out`                   |
+| `compare` | Monte Carlo across the four quoting policies                                                                     |
+| `options` | Same short option under `none` / `taker` / `mm` hedge modes                                                      |
+| `serve`   | Research terminal: book ladder, fair value vs. mid vs. quotes, inventory and equity paths, markouts, Monte Carlo |
 
-`run` selects `value_process=two_state` for Glosten–Milgrom and Brownian motion otherwise.
+`run` selects `value_process=two_state` for Glosten-Milgrom and Brownian motion otherwise.
 
 ## Design notes
 

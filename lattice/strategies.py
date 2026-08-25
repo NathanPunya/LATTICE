@@ -3,8 +3,8 @@
 Three policies, increasing in how much of the microstructure they 'see':
 
 1. Naive — symmetric quotes around the touch / mid. A control.
-2. Avellaneda–Stoikov (2008) — inventory-averse optimal MM on a Brownian mid.
-3. Glosten–Milgrom Bayesian — quotes that are fair *conditional on being hit*,
+2. Avellaneda-Stoikov (2008) — inventory-averse optimal MM on a Brownian mid.
+3. Glosten-Milgrom Bayesian — quotes that are fair *conditional on being hit*,
    so the MM is compensated for adverse selection rather than pretending it
    does not exist.
 
@@ -154,7 +154,7 @@ class AvellanedaStoikov(Strategy):
 
 
 class GlostenMilgrom(Strategy):
-    """Two-state Glosten–Milgrom market maker.
+    """Two-state Glosten-Milgrom market maker.
 
     Latent value V ∈ {V_low, V_high}. After each trade the MM updates
     p = P(V = V_high | history). Quotes are the *conditional* expectations

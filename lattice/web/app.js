@@ -28,19 +28,22 @@ function cssVar(name) {
 }
 
 function resize(canvas) {
-  const r = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = Math.max(1, Math.floor(r.width * dpr));
-  canvas.height = Math.max(1, Math.floor(r.height * dpr));
+  const cssW = Math.max(1, canvas.clientWidth);
+  const cssH = Math.max(1, canvas.clientHeight);
+  canvas.width = Math.max(1, Math.floor(cssW * dpr));
+  canvas.height = Math.max(1, Math.floor(cssH * dpr));
   const ctx = canvas.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  return { ctx, w: r.width, h: r.height };
+  return { ctx, w: cssW, h: cssH };
 }
+
+const CHART_PAD = { l: 8, r: 56, t: 10, b: 8 };
 
 function lineChart(canvas, series, colors, x0 = 0, labels = [], signed = false) {
   const { ctx, w, h } = resize(canvas);
   ctx.clearRect(0, 0, w, h);
-  const pad = { l: 8, r: 56, t: 10, b: 8 };
+  const pad = CHART_PAD;
   const innerW = w - pad.l - pad.r;
   const innerH = h - pad.t - pad.b;
   let lo = Infinity, hi = -Infinity;
@@ -51,7 +54,7 @@ function lineChart(canvas, series, colors, x0 = 0, labels = [], signed = false) 
       hi = Math.max(hi, v);
     }
   }
-  if (!Number.isFinite(lo)) return;
+  if (!Number.isFinite(lo)) return null;
   if (hi - lo < 1e-9) { hi += 1; lo -= 1; }
   const padY = (hi - lo) * 0.08;
   lo -= padY; hi += padY;
@@ -134,6 +137,7 @@ function lineChart(canvas, series, colors, x0 = 0, labels = [], signed = false) 
     ctx.textAlign = "left";
     ctx.fillText(text, bx + 4, by + boxH / 2 + 0.5);
   });
+  return x;
 }
 
 function barChart(canvas, labels, values, colorFn) {
@@ -329,7 +333,7 @@ function drawAll() {
   const fairs = frames.map((x) => x.fair);
   const bids = frames.map((x) => x.mm_bid);
   const asks = frames.map((x) => x.mm_ask);
-  lineChart($("price"), [fairs, mids, bids, asks], ["#e0b35c", "#8aa4c8", "#3dcc8a", "#ff5f62"], i, ["fair", "mid", "bid", "ask"]);
+  const playX = lineChart($("price"), [fairs, mids, bids, asks], ["#e0b35c", "#8aa4c8", "#3dcc8a", "#ff5f62"], i, ["fair", "mid", "bid", "ask"]);
   const setPx = (id, v) => { const el = $(id); if (el) el.textContent = fmtPx(v); };
   setPx("px-fair", f.fair);
   setPx("px-mid", f.mid);
@@ -356,6 +360,47 @@ function drawAll() {
 
   renderLadder(f);
   renderFills(d.fills, f.t || 0);
+  positionScrubKnob(playX);
+}
+
+function positionScrubKnob(playX) {
+  const canvas = $("price");
+  const knob = $("scrub-knob");
+  const transport = $("transport");
+  if (!canvas || !knob || !transport || playX == null) return;
+  const cr = canvas.getBoundingClientRect();
+  const tr = transport.getBoundingClientRect();
+  knob.style.left = `${cr.left - tr.left + playX}px`;
+}
+
+function frameIndexAt(clientX) {
+  const canvas = $("price");
+  const frames = (state.data && state.data.frames) || [];
+  if (!canvas || !frames.length) return 0;
+  const cr = canvas.getBoundingClientRect();
+  const innerW = Math.max(cr.width - CHART_PAD.l - CHART_PAD.r, 1);
+  const f = (clientX - cr.left - CHART_PAD.l) / innerW;
+  return Math.round(Math.min(1, Math.max(0, f)) * (frames.length - 1));
+}
+
+function seekToPointer(clientX) {
+  if (!state.data) return;
+  state.i = frameIndexAt(clientX);
+  setPaused(true);
+  drawAll();
+}
+
+function atEnd() {
+  const frames = (state.data && state.data.frames) || [];
+  return frames.length > 0 && state.i >= frames.length - 1;
+}
+
+function syncRunButton() {
+  const btn = $("run");
+  if (!btn) return;
+  if (state.playing) btn.textContent = "Pause";
+  else if (state.data && !atEnd()) btn.textContent = "Play";
+  else btn.textContent = "Run simulation";
 }
 
 function setPaused(paused) {
@@ -364,33 +409,25 @@ function setPaused(paused) {
     state.timer = null;
   }
   state.playing = !paused;
-  const btn = $("playpause");
-  if (btn) btn.textContent = paused ? "Play" : "Pause";
+  syncRunButton();
 }
 
 function play() {
   if (!state.data || !state.data.frames.length) return;
-  if (state.i >= state.data.frames.length - 1) state.i = 0;
+  if (atEnd()) state.i = 0;
   setPaused(false);
   if (state.timer) clearInterval(state.timer);
   state.timer = setInterval(() => {
-    if (state.i >= state.data.frames.length - 1) {
+    if (atEnd()) {
       setPaused(true);
       return;
     }
     state.i += 1;
-    $("scrub").value = String(state.i);
     drawAll();
   }, 28);
 }
 
-function togglePlay() {
-  if (!state.data) return;
-  if (state.playing) setPaused(true);
-  else play();
-}
-
-async function runSim() {
+async function runSim({ autoplay = true } = {}) {
   $("status").textContent = "simulating…";
   $("run").disabled = true;
   setPaused(true);
@@ -414,12 +451,10 @@ async function runSim() {
     if (!res.ok) throw new Error(await res.text());
     state.data = await res.json();
     state.i = 0;
-    $("scrub").max = String(Math.max((state.data.frames || []).length - 1, 0));
-    $("scrub").value = "0";
     $("status").textContent = `${state.data.strategy} · ${state.data.trades_n} trades`;
     setPaused(true);
     drawAll();
-    play();
+    if (autoplay) play();
   } catch (err) {
     $("status").textContent = "error";
     console.error(err);
@@ -462,16 +497,29 @@ async function runCompare() {
   }
 }
 
-$("run").addEventListener("click", runSim);
+$("run").addEventListener("click", () => {
+  if (state.playing) setPaused(true);
+  else if (state.data && !atEnd()) play();
+  else runSim();
+});
+$("strategy").addEventListener("change", () => {
+  setPaused(true);
+  runSim({ autoplay: false });
+});
 $("compare").addEventListener("click", runCompare);
-if ($("playpause")) $("playpause").addEventListener("click", togglePlay);
-if ($("scrub")) {
-  $("scrub").addEventListener("input", (e) => {
-    state.i = Number(e.target.value);
-    setPaused(true);
-    drawAll();
-  });
+{
+  const transport = $("transport");
+  if (transport) {
+    transport.addEventListener("pointerdown", (e) => {
+      transport.setPointerCapture(e.pointerId);
+      seekToPointer(e.clientX);
+    });
+    transport.addEventListener("pointermove", (e) => {
+      if (!transport.hasPointerCapture(e.pointerId)) return;
+      seekToPointer(e.clientX);
+    });
+  }
 }
 window.addEventListener("resize", drawAll);
 
-runSim();
+runSim({ autoplay: false });

@@ -49,15 +49,23 @@ label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color:
     "book compare fills";
   gap: 8px;
   padding: 8px;
-  min-height: calc(100vh - 92px);
+  height: calc(100vh - 92px);
+  overflow: hidden;
 }
 .controls { grid-area: controls; }
 .chart-wrap { grid-area: chart; display: flex; flex-direction: column; }
 .metrics { grid-area: metrics; }
 .book { grid-area: book; overflow: hidden; }
+.inv, .equity {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  max-height: 100%;
+}
 .inv { grid-area: inv; }
 .equity { grid-area: equity; }
-.compare { grid-area: compare; overflow: auto; }
+.compare { grid-area: compare; overflow: auto; min-height: 0; position: relative; z-index: 1; }
 .fills { grid-area: fills; overflow: hidden; }
 
 .panel {
@@ -66,6 +74,7 @@ label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color:
   border-radius: 6px;
   padding: 12px;
   min-width: 0;
+  min-height: 0;
 }
 .panel h2 {
   margin: 0 0 10px;
@@ -93,10 +102,48 @@ label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color:
 .lg.ask b { color: var(--ask); }
 
 canvas { width: 100%; display: block; }
-#price { flex: 1; min-height: 180px; }
-.transport { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
-.transport button { min-width: 64px; font-size: 12px; padding: 5px 10px; }
-#scrub { flex: 1; margin: 0; accent-color: var(--gold); }
+.inv canvas, .equity canvas {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 0;
+  width: 100%;
+}
+.price-stage {
+  position: relative;
+  flex: 1;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+#price { flex: 1; min-height: 180px; width: 100%; }
+.transport {
+  position: relative;
+  height: 16px;
+  flex: 0 0 16px;
+  margin-top: 4px;
+  cursor: pointer;
+}
+.scrub-rail {
+  position: absolute;
+  left: 8px;
+  right: 56px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--line);
+  pointer-events: none;
+}
+.scrub-knob {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--gold);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
 
 .kpi { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
 .kpi .cell { background: #0a0e14; border: 1px solid var(--line); padding: 8px; border-radius: 4px; }
