@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LATTICE · Microstructure Lab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css?v=3" />
 </head>
+
 <body>
   <header class="top">
     <div class="brand">
@@ -27,8 +31,8 @@
       <h2>Session</h2>
       <label>Strategy
         <select id="strategy">
-          <option value="avellaneda_stoikov">Avellaneda–Stoikov</option>
-          <option value="glosten_milgrom">Glosten–Milgrom</option>
+          <option value="avellaneda_stoikov">Avellaneda-Stoikov</option>
+          <option value="glosten_milgrom">Glosten-Milgrom</option>
           <option value="inventory_skew">Inventory skew</option>
           <option value="naive">Naive symmetric</option>
         </select>
@@ -57,7 +61,8 @@
         <button id="run" class="primary" type="button">Run simulation</button>
         <button id="compare" type="button">Monte Carlo</button>
       </div>
-      <p class="hint">Quotes rest in a real FIFO book. Informed flow knows the latent value. P&amp;L is decomposed, not decorated.</p>
+      <p class="hint">Quotes rest in a real FIFO book. Informed flow knows the latent value. P&amp;L is decomposed, not
+        decorated.</p>
     </aside>
 
     <section class="panel chart-wrap">
@@ -70,10 +75,12 @@
           <span class="lg ask">ask <b id="px-ask">—</b></span>
         </div>
       </div>
-      <canvas id="price"></canvas>
-      <div class="transport">
-        <button id="playpause" type="button">Play</button>
-        <input id="scrub" type="range" min="0" max="0" value="0" />
+      <div class="price-stage">
+        <canvas id="price"></canvas>
+        <div class="transport" id="transport">
+          <div class="scrub-rail"></div>
+          <div class="scrub-knob" id="scrub-knob"></div>
+        </div>
       </div>
     </section>
 
@@ -124,6 +131,7 @@
     <span>Prices in ticks. Matching is price-time. Nothing fills except through the engine.</span>
     <span class="mono">lattice run · lattice compare · lattice serve</span>
   </footer>
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v=7"></script>
 </body>
+
 </html>

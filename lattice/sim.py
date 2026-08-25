@@ -2,7 +2,7 @@
 
 The world has four actors and one clock:
 
-- a latent fair value, either a Brownian mid or a two-state Glosten–Milgrom V
+- a latent fair value, either a Brownian mid or a two-state Glosten-Milgrom V
 - uninformed (noise) market orders, Poisson in time and random in side
 - informed market orders that *know* V and only trade when it is on their side
 - a crowd of background limit orders that rest around V, giving the book depth

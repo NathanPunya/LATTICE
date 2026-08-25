@@ -47,7 +47,10 @@ class CompareRequest(BaseModel):
 
 @app.get("/")
 def index() -> FileResponse:
-    return FileResponse(WEB / "index.html")
+    return FileResponse(
+        WEB / "index.html",
+        headers={"Cache-Control": "no-store, max-age=0"},
+    )
 
 
 @app.post("/api/simulate")
@@ -89,3 +92,11 @@ def health() -> dict:
 
 
 app.mount("/static", StaticFiles(directory=str(WEB)), name="static")
+
+
+@app.middleware("http")
+async def no_cache(request, call_next):
+    response = await call_next(request)
+    if request.url.path == "/" or request.url.path.startswith("/static"):
+        response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
